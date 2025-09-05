@@ -1,0 +1,75 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.0.5/schema.json",
+	"files": {
+		"includes": ["**", "!**/dist/**/*", "!**/coverage"]
+	},
+	"formatter": {
+		"indentWidth": 4,
+		"lineWidth": 180,
+		"includes": ["**", "!**/node_modules", "!**/*-lock.json", "!**/*.lock", "!**/*.gen.ts", "!**/.vscode", "!**/coverage/**", "!**/src/drizzle/**"]
+	},
+	"linter": {
+		"includes": ["**", "!**/*.js", "!**/dist/**/*", "!**/src/overrides/**", "!**/coverage/**"],
+		"rules": {
+			"correctness": {
+				"noSwitchDeclarations": "off"
+			},
+			"complexity": {
+				"noForEach": "off",
+				"noStaticOnlyClass": "off",
+				"useOptionalChain": "off",
+				"useLiteralKeys": "off"
+			},
+			"style": {
+				"useImportType": "off",
+				"useNodejsImportProtocol": "off",
+				"noUnusedTemplateLiteral": "off",
+				"noNonNullAssertion": "off",
+				"useNumberNamespace": "off",
+				"useTemplate": "off",
+				"useEnumInitializers": "off",
+				"noInferrableTypes": "off",
+				"noUselessElse": "off",
+				"useSingleVarDeclarator": "off",
+				"noParameterAssign": "off"
+			},
+			"suspicious": {
+				"noDoubleEquals": "off",
+				"noExplicitAny": "off",
+				"noImplicitAnyLet": "off",
+				"noAssignInExpressions": "off",
+				"noGlobalIsNan": "off"
+			},
+			"performance": {
+				"noDelete": "off",
+				"noAccumulatingSpread": "off"
+			}
+		}
+	},
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"javascript": {
+		"globals": ["$", "_"],
+		"parser": {
+			"unsafeParameterDecoratorsEnabled": true
+		},
+		"formatter": {
+			"enabled": false,
+			"trailingCommas": "none",
+			"semicolons": "asNeeded"
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["**/*.json", "**/*.js"],
+			"javascript": {
+				"formatter": {
+					"semicolons": "always"
+				}
+			},
+			"formatter": {
+				"indentStyle": "space",
+				"indentWidth": 2
+			}
+		}
+	]
+}
