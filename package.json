@@ -1,6 +1,6 @@
 {
   "name": "@circlesac/lint",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "main": "dist/main.js",
   "exports": {
@@ -34,6 +34,7 @@
     "@tszen/trycatch": "^0.1.0",
     "chalk": "^4.1.2",
     "commander": "^14.0.0",
+    "eslint": "^9.34.0",
     "read-package-up": "^11.0.0"
   },
   "devDependencies": {
@@ -41,7 +42,6 @@
     "@types/bun": "^1.2.21",
     "@types/node": "^24.3.0",
     "@vitest/coverage-v8": "3.2.4",
-    "eslint": "^9.34.0",
     "globals": "^16.3.0",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.42.0",
@@ -51,10 +51,7 @@
     "build": "barrels && bun lint && tsc --noEmit && bun run build.ts",
     "dev": "bun run src/main.ts",
     "start": "bun run build && bun run dist/main.js",
-    "lint": "bun lint:eslint && bun lint:prettier && bun lint:biome",
-    "lint:eslint": "eslint . --fix",
-    "lint:prettier": "prettier '**/*.{ts,tsx,js,jsx,json,md,cjs,mjs,mts,yml,yaml}' --write",
-    "lint:biome": "biome check --write",
+    "lint": "bun dev --all",
     "test": "vitest run --coverage",
     "version:patch": "npm version patch",
     "version:minor": "npm version minor",
