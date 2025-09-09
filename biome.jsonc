@@ -1,7 +1,7 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.0.5/schema.json",
 	"files": {
-		"includes": ["**", "!**/dist/**/*", "!**/coverage", "!**/.vercel/**", "!**/.mastra/**"]
+		"includes": ["**", "!**/dist/**", "!**/coverage/**", "!**/build/**", "!**/node_modules/**" ,"!**/.vercel/**", "!**/.mastra/**", "**/.sst/**", "**/.open-next/**", "**/.next/**"]
 	},
 	"formatter": {
 		"indentWidth": 4,
