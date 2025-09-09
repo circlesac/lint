@@ -41,6 +41,7 @@ export default tseslint.config(
 				}
 			],
 			"@typescript-eslint/no-require-imports": "warn",
+			"@typescript-eslint/triple-slash-reference": "warn",
 			"no-console": ["error", { allow: ["debug", "error", "info", "trace", "warn"] }],
 			"no-empty": "off",
 			"no-case-declarations": "off"
