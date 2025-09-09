@@ -13,7 +13,7 @@ const tools: ToolConfig[] = [
 	{
 		name: "prettier",
 		title: "Prettier",
-		command: "npx prettier",
+		command: "npx prettier@latest",
 		args: ["'**/*.{ts,tsx,js,jsx,json,jsonc,md,cjs,mjs,mts,yml,yaml}'", "'!**/sst-env.d.ts'", "--write"],
 		configArg: "--config",
 		configFile: "prettier.config.mjs"
