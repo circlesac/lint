@@ -38,7 +38,8 @@
 				"noExplicitAny": "off",
 				"noImplicitAnyLet": "off",
 				"noAssignInExpressions": "off",
-				"noGlobalIsNan": "off"
+				"noGlobalIsNan": "off",
+				"noArrayIndexKey": "off"
 			},
 			"performance": {
 				"noDelete": "off",
