@@ -35,7 +35,7 @@ export default tseslint.config(
 		}
 	},
 	{
-		files: ["**/*.cjs"],
+		files: ["**/*.cjs", "**/babel.config.js"],
 		languageOptions: {
 			globals: {
 				require: "readonly",
