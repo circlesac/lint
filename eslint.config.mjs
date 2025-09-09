@@ -29,6 +29,7 @@ export default tseslint.config(
 					caughtErrorsIgnorePattern: "^_.*"
 				}
 			],
+			"@typescript-eslint/no-require-imports": "warn",
 			"no-console": ["error", { allow: ["debug", "error", "info", "trace", "warn"] }],
 			"no-empty": "off",
 			"no-case-declarations": "off"
@@ -47,9 +48,6 @@ export default tseslint.config(
 				global: "readonly",
 				console: "readonly"
 			}
-		},
-		rules: {
-			"@typescript-eslint/no-require-imports": "off"
 		}
 	}
 )
