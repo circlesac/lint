@@ -33,5 +33,23 @@ export default tseslint.config(
 			"no-empty": "off",
 			"no-case-declarations": "off"
 		}
+	},
+	{
+		files: ["**/*.cjs"],
+		languageOptions: {
+			globals: {
+				require: "readonly",
+				module: "readonly",
+				exports: "readonly",
+				__dirname: "readonly",
+				__filename: "readonly",
+				process: "readonly",
+				global: "readonly",
+				console: "readonly"
+			}
+		},
+		rules: {
+			"@typescript-eslint/no-require-imports": "off"
+		}
 	}
 )
