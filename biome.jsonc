@@ -1,15 +1,54 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.0.5/schema.json",
 	"files": {
-		"includes": ["**", "!**/dist", "!**/coverage", "!**/build", "!**/node_modules", "!**/.vercel", "!**/.mastra", "**/.sst/**", "**/.open-next/**", "**/.next/**"]
+		"includes": [
+			"**",
+			"!**/dist",
+			"!**/coverage",
+			"!**/build",
+			"!**/node_modules",
+			"!**/.vercel",
+			"!**/.mastra",
+			"!**/.sst",
+			"!**/.open-next",
+			"!**/.next",
+			"!**/*-lock.json",
+			"!**/*.lock"
+		]
 	},
 	"formatter": {
 		"indentWidth": 4,
 		"lineWidth": 180,
-		"includes": ["**", "!**/node_modules", "!**/*-lock.json", "!**/*.lock", "!**/*.gen.ts", "!**/.vscode", "!**/coverage/**", "!**/src/drizzle/**"]
+		"includes": [
+			"**",
+			"!**/dist",
+			"!**/coverage",
+			"!**/build",
+			"!**/node_modules",
+			"!**/.vercel",
+			"!**/.mastra",
+			"!**/.sst",
+			"!**/.open-next",
+			"!**/.next",
+			"!**/*-lock.json",
+			"!**/*.lock"
+		]
 	},
 	"linter": {
-		"includes": ["**", "!**/*.js", "!**/dist/**/*", "!**/src/overrides/**", "!**/coverage/**"],
+		"includes": [
+			"**",
+			"!**/dist",
+			"!**/coverage",
+			"!**/build",
+			"!**/node_modules",
+			"!**/.vercel",
+			"!**/.mastra",
+			"!**/.sst",
+			"!**/.open-next",
+			"!**/.next",
+			"!**/*-lock.json",
+			"!**/*.lock"
+		],
 		"rules": {
 			"correctness": {
 				"noSwitchDeclarations": "off"
