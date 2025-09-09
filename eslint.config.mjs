@@ -5,7 +5,18 @@ export default tseslint.config(
 	eslint.configs.recommended,
 	...tseslint.configs.recommended,
 	{
-		ignores: ["**/dist/**", "**/coverage/**", "**/build/**", "**/node_modules/**", "**/.vercel/**", "**/.mastra/**", "**/.sst/**", "**/.open-next/**", "**/.next/**"]
+		ignores: [
+			"**/dist/**",
+			"**/coverage/**",
+			"**/build/**",
+			"**/node_modules/**",
+			"**/.vercel/**",
+			"**/.mastra/**",
+			"**/.sst/**",
+			"**/.open-next/**",
+			"**/.next/**",
+			"**/sst-env.d.ts"
+		]
 	},
 	{
 		languageOptions: {

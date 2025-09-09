@@ -13,7 +13,8 @@
 			"!**/.open-next",
 			"!**/.next",
 			"!**/*-lock.json",
-			"!**/*.lock"
+			"!**/*.lock",
+			"!**/sst-env.d.ts"
 		]
 	},
 	"formatter": {
@@ -31,7 +32,8 @@
 			"!**/.open-next",
 			"!**/.next",
 			"!**/*-lock.json",
-			"!**/*.lock"
+			"!**/*.lock",
+			"!**/sst-env.d.ts"
 		]
 	},
 	"linter": {
@@ -47,7 +49,8 @@
 			"!**/.open-next",
 			"!**/.next",
 			"!**/*-lock.json",
-			"!**/*.lock"
+			"!**/*.lock",
+			"!**/sst-env.d.ts"
 		],
 		"rules": {
 			"correctness": {
