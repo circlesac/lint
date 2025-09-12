@@ -62,6 +62,7 @@ export class LintCommand extends BaseCommand {
 
 		if (failedTools.length > 0) {
 			console.error(`✗ Failed: ${failedTools.join(", ")}`)
+			process.exitCode = 1
 		}
 	}
 
