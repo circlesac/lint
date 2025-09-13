@@ -10,6 +10,8 @@ export interface ToolConfig {
 	args: string[]
 	configArg: string
 	configFile: string
+	ignoreArg?: string
+	ignoreFile?: string
 }
 
 export async function runTool(tool: ToolConfig): Promise<boolean> {
@@ -18,6 +20,12 @@ export async function runTool(tool: ToolConfig): Promise<boolean> {
 
 	const args = [...tool.args]
 	args.push(tool.configArg, configPath)
+
+	// Add ignore file if specified
+	if (tool.ignoreArg && tool.ignoreFile) {
+		const ignorePath = resolve(packageRoot, tool.ignoreFile)
+		args.push(tool.ignoreArg, ignorePath)
+	}
 
 	try {
 		const command = `${tool.command} ${args.join(" ")}`

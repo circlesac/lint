@@ -15,7 +15,8 @@ export default tseslint.config(
 			"**/.sst/**",
 			"**/.open-next/**",
 			"**/.next/**",
-			"**/sst-env.d.ts"
+			"**/sst-env.d.ts",
+			"**/worker-configuration.d.ts"
 		]
 	},
 	{

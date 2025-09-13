@@ -16,7 +16,9 @@ const tools: ToolConfig[] = [
 		command: "npx prettier@latest",
 		args: ["'**/*.{ts,tsx,js,jsx,json,jsonc,md,cjs,mjs,mts,yml,yaml}'", "'!**/sst-env.d.ts'", "--write"],
 		configArg: "--config",
-		configFile: "prettier.config.mjs"
+		configFile: "prettier.config.mjs",
+		ignoreArg: "--ignore-path",
+		ignoreFile: ".prettierignore"
 	},
 	{
 		name: "biome",
