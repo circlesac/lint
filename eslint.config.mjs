@@ -18,7 +18,7 @@ export default tseslint.config(
 			"**/.wrangler/**",
 			"**/sst-env.d.ts",
 			"**/worker-configuration.d.ts",
-			"**/test/test/env.d.ts"
+			"**/test/env.d.ts"
 		]
 	},
 	{
