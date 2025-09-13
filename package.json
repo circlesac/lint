@@ -14,9 +14,10 @@
   "description": "🔧 A zero-config lint tool that uses ESLint, Prettier, and Biome",
   "files": [
     "dist",
+    ".prettierignore",
+    "biome.jsonc",
     "eslint.config.mjs",
-    "prettier.config.mjs",
-    "biome.jsonc"
+    "prettier.config.mjs"
   ],
   "keywords": [
     "cli",
