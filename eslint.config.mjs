@@ -17,7 +17,8 @@ export default tseslint.config(
 			"**/.next/**",
 			"**/.wrangler/**",
 			"**/sst-env.d.ts",
-			"**/worker-configuration.d.ts"
+			"**/worker-configuration.d.ts",
+			"**/test/test/env.d.ts"
 		]
 	},
 	{

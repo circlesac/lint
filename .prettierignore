@@ -11,4 +11,5 @@ node_modules/
 *-lock.json
 *.lock
 sst-env.d.ts
+test/env.d.ts
 worker-configuration.d.ts

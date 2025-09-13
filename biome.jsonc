@@ -16,7 +16,8 @@
 			"!**/*-lock.json",
 			"!**/*.lock",
 			"!**/sst-env.d.ts",
-			"!**/worker-configuration.d.ts"
+			"!**/worker-configuration.d.ts",
+			"!**/test/test/env.d.ts"
 		]
 	},
 	"formatter": {
@@ -37,7 +38,8 @@
 			"!**/*-lock.json",
 			"!**/*.lock",
 			"!**/sst-env.d.ts",
-			"!**/worker-configuration.d.ts"
+			"!**/worker-configuration.d.ts",
+			"!**/test/test/env.d.ts"
 		]
 	},
 	"linter": {
@@ -56,7 +58,8 @@
 			"!**/*-lock.json",
 			"!**/*.lock",
 			"!**/sst-env.d.ts",
-			"!**/worker-configuration.d.ts"
+			"!**/worker-configuration.d.ts",
+			"!**/test/test/env.d.ts"
 		],
 		"rules": {
 			"correctness": {
