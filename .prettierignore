@@ -1,2 +1,14 @@
+dist/
+coverage/
+build/
+node_modules/
+.vercel/
+.mastra/
+.sst/
+.open-next/
+.next/
 .wrangler/
+*-lock.json
+*.lock
+sst-env.d.ts
 worker-configuration.d.ts
