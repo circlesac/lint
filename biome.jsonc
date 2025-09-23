@@ -62,6 +62,12 @@
 			"!**/test/env.d.ts"
 		],
 		"rules": {
+			"a11y": {
+				"noSvgWithoutTitle": "off",
+				"noStaticElementInteractions": "off",
+				"noLabelWithoutControl": "off",
+				"useKeyWithClickEvents": "off"
+			},
 			"correctness": {
 				"noSwitchDeclarations": "off"
 			},
@@ -90,7 +96,8 @@
 				"noImplicitAnyLet": "off",
 				"noAssignInExpressions": "off",
 				"noGlobalIsNan": "off",
-				"noArrayIndexKey": "off"
+				"noArrayIndexKey": "off",
+				"noUnknownAtRules": "off"
 			},
 			"performance": {
 				"noDelete": "off",
@@ -112,7 +119,7 @@
 	},
 	"overrides": [
 		{
-			"includes": ["**/*.json", "**/*.js"],
+			"includes": ["**/*.json", "**/*.js", "**/*.mjs"],
 			"javascript": {
 				"formatter": {
 					"semicolons": "always"
