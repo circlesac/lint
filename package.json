@@ -1,6 +1,6 @@
 {
   "name": "@circlesac/lint",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "type": "module",
   "main": "dist/main.js",
   "exports": {
