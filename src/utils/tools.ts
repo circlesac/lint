@@ -8,18 +8,22 @@ export interface ToolConfig {
 	title: string
 	command: string
 	args: string[]
-	configArg: string
-	configFile: string
+	configArg?: string
+	configFile?: string
 	ignoreArg?: string
 	ignoreFile?: string
 }
 
 export async function runTool(tool: ToolConfig): Promise<boolean> {
 	const packageRoot = await getPackageRoot()
-	const configPath = resolve(packageRoot, tool.configFile)
 
 	const args = [...tool.args]
-	args.push(tool.configArg, configPath)
+
+	// Add config file if specified
+	if (tool.configArg && tool.configFile) {
+		const configPath = resolve(packageRoot, tool.configFile)
+		args.push(tool.configArg, configPath)
+	}
 
 	// Add ignore file if specified
 	if (tool.ignoreArg && tool.ignoreFile) {

@@ -3,6 +3,12 @@ import { runTool, type ToolConfig } from "../utils/tools.js"
 
 const tools: ToolConfig[] = [
 	{
+		name: "oxlint",
+		title: "Oxlint",
+		command: "npx oxlint",
+		args: ["--fix"]
+	},
+	{
 		name: "eslint",
 		title: "ESLint",
 		command: "npx eslint",
