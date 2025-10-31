@@ -48,10 +48,17 @@ export async function runTool(tool: ToolConfig): Promise<boolean> {
 	} catch (error) {
 		// On error, show the actual tool output
 		console.info(`❌ ${tool.title} failed`)
-		if (error instanceof Error && "stdout" in error) {
-			console.error(error.stdout)
-		} else if (error instanceof Error && "stderr" in error) {
-			console.error(error.stderr)
+		if (error && typeof error === "object") {
+			const execError = error as { stdout?: string | Buffer; stderr?: string | Buffer; message?: string }
+			if (execError.stdout) {
+				console.error(execError.stdout.toString())
+			}
+			if (execError.stderr) {
+				console.error(execError.stderr.toString())
+			}
+			if (!execError.stdout && !execError.stderr && execError.message) {
+				console.error(execError.message)
+			}
 		} else {
 			console.error(String(error))
 		}
@@ -68,5 +75,6 @@ export async function getPackageRoot(): Promise<string> {
 	if (!result) {
 		throw new Error("Could not find package.json")
 	}
-	return resolve(result.path, "..")
+	// result.path is the path to package.json, so get its directory
+	return dirname(result.path)
 }

@@ -74,7 +74,7 @@ export class LintCommand extends BaseCommand {
 		}
 	}
 
-	private getEnabledTools(tools: ToolConfig[], options: Record<string, boolean>) {
+	private getEnabledTools(tools: ToolConfig[], options: Record<string, boolean>): ToolConfig[] {
 		// If --all is specified, run all tools (regardless of individual tool options)
 		if (options.all) return tools
 
@@ -82,6 +82,9 @@ export class LintCommand extends BaseCommand {
 		const selectedTools = tools.filter((tool) => options[tool.name])
 		if (selectedTools.length !== 0) return selectedTools
 
+		// No tools selected, show help and exit
 		this.help()
+		process.exit(0)
+		return [] // This line is unreachable, but satisfies TypeScript
 	}
 }
