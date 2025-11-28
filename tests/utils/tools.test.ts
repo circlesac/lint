@@ -6,7 +6,6 @@ import { appendToGitHubStepSummary, getPackageRoot, saveFailureLog } from "../..
 
 describe("tools", () => {
 	const originalEnv = process.env
-	const originalCwd = process.cwd()
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -16,13 +15,14 @@ describe("tools", () => {
 
 	afterEach(async () => {
 		process.env = originalEnv
-		// Clean up test log files from CWD
+		// Clean up test log files from tmp folder
 		try {
-			const files = readdirSync(originalCwd)
+			const tmpDir = tmpdir()
+			const files = readdirSync(tmpDir)
 			for (const file of files) {
 				if (file.startsWith("circlesac-lint-") && file.endsWith(".log")) {
 					try {
-						unlinkSync(join(originalCwd, file))
+						unlinkSync(join(tmpDir, file))
 					} catch {
 						// Ignore cleanup errors
 					}
@@ -43,7 +43,7 @@ describe("tools", () => {
 	})
 
 	describe("saveFailureLog", () => {
-		it("should save failure log to current working directory", async () => {
+		it("should save failure log to tmp folder", async () => {
 			const logData = {
 				tool: "eslint",
 				command: "npx eslint",
@@ -59,7 +59,7 @@ describe("tools", () => {
 
 			expect(logPath).toBeDefined()
 			if (logPath) {
-				expect(logPath).toContain(process.cwd())
+				expect(logPath).toContain(tmpdir())
 				expect(logPath).toMatch(/circlesac-lint-eslint-.*\.log$/)
 				expect(existsSync(logPath)).toBe(true)
 				const content = readFileSync(logPath, "utf8")
@@ -149,7 +149,7 @@ describe("tools", () => {
 		it("should not fail when GITHUB_STEP_SUMMARY is not set", async () => {
 			delete process.env.GITHUB_STEP_SUMMARY
 
-			await expect(appendToGitHubStepSummary("test")).resolves.not.toThrow()
+			await expect(appendToGitHubStepSummary("test")).resolves.toBeUndefined()
 		})
 	})
 

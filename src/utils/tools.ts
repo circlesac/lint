@@ -1,5 +1,6 @@
 import { execSync } from "child_process"
 import { access, appendFile, writeFile } from "fs/promises"
+import { tmpdir } from "os"
 import { dirname, join, resolve } from "path"
 import { readPackageUp } from "read-package-up"
 import { fileURLToPath } from "url"
@@ -124,16 +125,14 @@ export async function runTool(tool: ToolConfig): Promise<boolean> {
 
 		// Show log path message
 		if (logPath) {
-			// Log is in CWD, so just show the filename
-			const filename = logPath.split(/[/\\]/).pop() || logPath
-
+			// Log is in tmp folder, show full path
 			console.error("")
-			console.error(`📄 Full failure log saved to: ${filename}`)
+			console.error(`📄 Full failure log saved to: ${logPath}`)
 
 			// Append to GitHub Step Summary if in CI
 			await appendToGitHubStepSummary(
 				`### ❌ ${tool.title} Failed\n\n` +
-					`**Full log:** \`${filename}\`\n\n` +
+					`**Full log:** \`${logPath}\`\n\n` +
 					`<details><summary>View error details</summary>\n\n` +
 					`\`\`\`\n${(stderr || stdout || errorMessage).slice(0, 500)}\n\`\`\`\n\n` +
 					`</details>`
@@ -161,7 +160,7 @@ export async function getPackageRoot(): Promise<string> {
 
 export async function saveFailureLog(data: FailureLogData): Promise<string | null> {
 	try {
-		const cwd = process.cwd()
+		const tmpDir = tmpdir()
 
 		// Create log entry
 		const logEntry = createLogEntry(data)
@@ -169,7 +168,7 @@ export async function saveFailureLog(data: FailureLogData): Promise<string | nul
 		// Generate filename: circlesac-lint-<program>-<timestamp>.log
 		const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
 		const filename = `circlesac-lint-${data.tool}-${timestamp}.log`
-		const logPath = join(cwd, filename)
+		const logPath = join(tmpDir, filename)
 
 		// Write log file
 		await writeFile(logPath, logEntry, "utf8")
