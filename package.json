@@ -47,7 +47,7 @@
     "vitest": "^3.2.4"
   },
   "scripts": {
-    "build": "barrels && bun lint && tsc --noEmit && bun run build.ts",
+    "build": "barrels && bun lint && npx -p @typescript/native-preview tsgo --noEmit && bun run build.ts",
     "dev": "bun run src/main.ts",
     "start": "bun run build && bun run dist/main.js",
     "lint": "bun dev --all",
