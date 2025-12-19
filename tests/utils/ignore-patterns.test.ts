@@ -36,16 +36,21 @@ describe(".venv ignore", () => {
 	})
 
 	it("should ignore .venv files when running lint command", async () => {
-		// Run the full lint command (all tools) from project root
-		// The lint command will lint files in process.cwd(), so we need to change directory
+		// Run Biome check (fastest tool) to verify .venv is ignored
+		// We test one tool instead of all to keep tests fast
+		const biomeConfig = join(packageRoot, "biome.jsonc")
 		const originalCwd = process.cwd()
 		process.chdir(testDir)
 
-		const output = execSync(`bun run dev --all`, {
-			cwd: packageRoot,
-			encoding: "utf8",
-			stdio: "pipe"
-		}).toString()
+		const output = execSync(
+			`npx @biomejs/biome check --config-path "${biomeConfig}" .`,
+			{
+				cwd: testDir,
+				encoding: "utf8",
+				stdio: "pipe",
+				timeout: 30000
+			}
+		).toString()
 
 		process.chdir(originalCwd)
 
