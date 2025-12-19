@@ -29,14 +29,19 @@ describe(".venv ignore", () => {
 		writeFileSync(join(testDir, ".venv", "lib", "bad.py"), 'import os\nprint("bad formatting")\n')
 		writeFileSync(join(testDir, ".venv", "bin", "script.py"), '#!/usr/bin/env python\nprint("unformatted")\n')
 		writeFileSync(join(testDir, ".venv", "test.ts"), 'const badCode = "this should be ignored"\nconsole.log(badCode)\n')
+
+		// Create htmlcov directory with files that should be ignored
+		mkdirSync(join(testDir, "htmlcov"), { recursive: true })
+		writeFileSync(join(testDir, "htmlcov", "index.html"), "<html><body>coverage report</body></html>\n")
+		writeFileSync(join(testDir, "htmlcov", "test.ts"), 'const badCode = "this should be ignored"\nconsole.log(badCode)\n')
 	})
 
 	afterEach(() => {
 		rmSync(testDir, { recursive: true, force: true })
 	})
 
-	it("should ignore .venv files when running lint command", async () => {
-		// Run the full lint command (all tools) to verify .venv is ignored
+	it("should ignore .venv and htmlcov files when running lint command", async () => {
+		// Run the full lint command (all tools) to verify .venv and htmlcov are ignored
 		// The lint command will lint files in process.cwd(), so we need to change directory
 		const originalCwd = process.cwd()
 		process.chdir(testDir)
@@ -55,5 +60,10 @@ describe(".venv ignore", () => {
 		expect(output).not.toContain(".venv/lib")
 		expect(output).not.toContain(".venv/bin")
 		expect(output).not.toContain(".venv/")
+
+		// Verify that htmlcov files are not mentioned in the output
+		expect(output).not.toContain("htmlcov/test.ts")
+		expect(output).not.toContain("htmlcov/index.html")
+		expect(output).not.toContain("htmlcov/")
 	}, 60000) // Test timeout: 60 seconds for all tools
 })

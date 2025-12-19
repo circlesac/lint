@@ -9,6 +9,7 @@ node_modules/
 .next/
 .wrangler/
 .venv/
+htmlcov/
 *-lock.json
 *.lock
 sst-env.d.ts

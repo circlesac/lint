@@ -3,4 +3,5 @@ dist/
 node_modules/
 .idea/
 .venv/
+htmlcov/
 circlesac-lint-*.log
