@@ -76,6 +76,7 @@ jobs:
           fi
 
       - name: Publish to npm
+        id: publish
         run: npm publish
 
       - name: Commit version bump and tag after successful publish
