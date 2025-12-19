@@ -2,6 +2,10 @@
 
 🔧 A zero-config lint tool that uses ESLint, Prettier, and Biome
 
+## Features
+
+- Automatically ignores `.venv` directories (used by `uv` and other Python tools)
+
 ## Usage
 
 ### Use with `npx` (recommended)
