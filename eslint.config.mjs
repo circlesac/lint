@@ -16,6 +16,7 @@ export default tseslint.config(
 			"**/.open-next/**",
 			"**/.next/**",
 			"**/.wrangler/**",
+			"**/.venv/**",
 			"**/sst-env.d.ts",
 			"**/worker-configuration.d.ts",
 			"**/test/env.d.ts"

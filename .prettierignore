@@ -8,6 +8,7 @@ node_modules/
 .open-next/
 .next/
 .wrangler/
+.venv/
 *-lock.json
 *.lock
 sst-env.d.ts
