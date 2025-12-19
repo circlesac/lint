@@ -39,7 +39,7 @@ jobs:
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           echo "Package version: $PACKAGE_VERSION"
-          
+
           # Check if package.json version exists in npm
           if npm view @circlesac/lint@$PACKAGE_VERSION version > /dev/null 2>&1; then
             # Version exists, bump npm version (patch)
@@ -56,7 +56,7 @@ jobs:
             echo "Package version $PACKAGE_VERSION not found in npm, using it"
             VERSION=$PACKAGE_VERSION
           fi
-          
+
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "Will publish version: $VERSION"
 
@@ -65,7 +65,7 @@ jobs:
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           VERSION="${{ steps.version.outputs.VERSION }}"
-          
+
           if [ "$PACKAGE_VERSION" != "$VERSION" ]; then
             npm version $VERSION --no-git-tag-version
             echo "Updated package.json from $PACKAGE_VERSION to $VERSION"
@@ -77,8 +77,6 @@ jobs:
 
       - name: Publish to npm
         run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Commit version bump and tag after successful publish
         if: steps.publish.outcome == 'success'
@@ -87,7 +85,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           VERSION="${{ steps.version.outputs.VERSION }}"
           TAG="v$VERSION"
-          
+
           # Commit package.json if it was updated
           if [ "${{ steps.update_version.outputs.UPDATED }}" == "true" ]; then
             git add package.json
@@ -96,7 +94,7 @@ jobs:
           else
             echo "No changes to package.json"
           fi
-          
+
           # Create and push tag if it doesn't exist
           if git ls-remote --tags origin "$TAG" | grep -q "$TAG"; then
             echo "Tag $TAG already exists on remote, skipping"
@@ -104,7 +102,7 @@ jobs:
             git tag "$TAG"
             echo "Created tag $TAG"
           fi
-          
+
           # Push commits and tags
           git push origin main
           if git ls-remote --tags origin "$TAG" | grep -q "$TAG"; then
