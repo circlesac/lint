@@ -1,4 +1,5 @@
-import { BaseCommand } from "../utils/base.js"
+import { defineCommand, showUsage } from "citty"
+import packageJson from "../../package.json" with { type: "json" }
 import { runTool, type ToolConfig } from "../utils/tools.js"
 
 const tools: ToolConfig[] = [
@@ -36,55 +37,58 @@ const tools: ToolConfig[] = [
 	}
 ]
 
-export class LintCommand extends BaseCommand {
-	constructor() {
-		super("lint")
-		this.option("--all", "Run all tools")
-		for (const tool of tools) {
-			this.option(`--${tool.name}`, `Run ${tool.title}`)
-		}
-	}
-
-	protected async execute(options: Record<string, boolean>) {
+export const lintCommand = defineCommand({
+	meta: {
+		name: packageJson.name,
+		version: packageJson.version,
+		description: packageJson.description
+	},
+	args: {
+		all: {
+			type: "boolean",
+			description: "Run all tools"
+		},
+		...Object.fromEntries(tools.map((tool) => [tool.name, { type: "boolean" as const, description: `Run ${tool.title}` }]))
+	},
+	async run({ args }) {
 		console.info("🔧 Running lint tools...")
 
+		const options = args as Record<string, boolean>
+
 		// Validate options and determine which tools to run
-		const enabledTools = this.getEnabledTools(tools, options)
-
-		// Run enabled tools sequentially
-		const results: { tool: string; success: boolean }[] = []
-		for (const tool of enabledTools) {
-			results.push({
-				tool: tool.name,
-				success: await runTool(tool)
-			})
+		if (options.all) {
+			return await runTools(tools)
 		}
 
-		// Report results
-		const failedTools = results.filter((r) => !r.success).map((r) => r.tool)
-		const successfulTools = results.filter((r) => r.success).map((r) => r.tool)
-
-		if (successfulTools.length > 0) {
-			console.info(`✓ Completed: ${successfulTools.join(", ")}`)
-		}
-
-		if (failedTools.length > 0) {
-			console.error(`✗ Failed: ${failedTools.join(", ")}`)
-			process.exitCode = 1
-		}
-	}
-
-	private getEnabledTools(tools: ToolConfig[], options: Record<string, boolean>): ToolConfig[] {
-		// If --all is specified, run all tools (regardless of individual tool options)
-		if (options.all) return tools
-
-		// Find all specified individual tool options
 		const selectedTools = tools.filter((tool) => options[tool.name])
-		if (selectedTools.length !== 0) return selectedTools
+		if (selectedTools.length > 0) {
+			return await runTools(selectedTools)
+		}
 
 		// No tools selected, show help and exit
-		this.help()
+		await showUsage(lintCommand)
 		process.exit(0)
-		return [] // This line is unreachable, but satisfies TypeScript
+	}
+})
+
+async function runTools(enabledTools: ToolConfig[]) {
+	const results: { tool: string; success: boolean }[] = []
+	for (const tool of enabledTools) {
+		results.push({
+			tool: tool.name,
+			success: await runTool(tool)
+		})
+	}
+
+	const failedTools = results.filter((r) => !r.success).map((r) => r.tool)
+	const successfulTools = results.filter((r) => r.success).map((r) => r.tool)
+
+	if (successfulTools.length > 0) {
+		console.info(`✓ Completed: ${successfulTools.join(", ")}`)
+	}
+
+	if (failedTools.length > 0) {
+		console.error(`✗ Failed: ${failedTools.join(", ")}`)
+		process.exitCode = 1
 	}
 }
