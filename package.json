@@ -1,17 +1,28 @@
 {
-  "name": "@circlesac/lint",
-  "version": "0.0.32",
-  "type": "module",
-  "main": "dist/main.js",
-  "exports": {
-    "./eslint": "./eslint.config.mjs",
-    "./prettier": "./prettier.config.mjs",
-    "./biome": "./biome.jsonc"
-  },
   "bin": {
     "lint": "dist/main.js"
   },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^14.0.0",
+    "eslint": "^9.34.0",
+    "read-package-up": "^11.0.0",
+    "typescript-eslint": "^8.42.0"
+  },
   "description": "🔧 A zero-config lint tool that uses ESLint, Prettier, and Biome",
+  "devDependencies": {
+    "@tsed/barrels": "^6.6.3",
+    "@types/bun": "^1.2.21",
+    "@types/node": "^24.3.0",
+    "@vitest/coverage-v8": "3.2.4",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "exports": {
+    "./biome": "./biome.jsonc",
+    "./eslint": "./eslint.config.mjs",
+    "./prettier": "./prettier.config.mjs"
+  },
   "files": [
     "dist",
     ".prettierignore",
@@ -27,36 +38,25 @@
     "biome",
     "zeroconf"
   ],
+  "license": "MIT",
+  "main": "dist/main.js",
+  "name": "@circlesac/lint",
   "private": false,
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
-    "chalk": "^4.1.2",
-    "commander": "^14.0.0",
-    "eslint": "^9.34.0",
-    "read-package-up": "^11.0.0",
-    "typescript-eslint": "^8.42.0"
-  },
-  "devDependencies": {
-    "@tsed/barrels": "^6.6.3",
-    "@types/bun": "^1.2.21",
-    "@types/node": "^24.3.0",
-    "@vitest/coverage-v8": "3.2.4",
-    "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/circlesac/lint.git"
   },
   "scripts": {
     "build": "barrels && bun lint && npx -p @typescript/native-preview tsgo --noEmit && bun run build.ts",
     "dev": "bun run src/main.ts",
-    "start": "bun run build && bun run dist/main.js",
     "lint": "bun dev --all",
-    "test": "vitest run --coverage",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "start": "bun run build && bun run dist/main.js",
+    "test": "vitest run --coverage"
   },
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/circlesac/lint.git"
-  }
+  "type": "module",
+  "version": "26.2.0"
 }
