@@ -5,3 +5,5 @@ node_modules/
 .venv/
 htmlcov/
 circlesac-lint-*.log
+package-lock.json
+.claude/settings.local.json
