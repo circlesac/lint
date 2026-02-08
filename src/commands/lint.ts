@@ -34,6 +34,12 @@ const tools: ToolConfig[] = [
 		args: ["check", "--write"],
 		configArg: "--config-path",
 		configFile: "biome.jsonc"
+	},
+	{
+		name: "typecheck",
+		title: "TypeScript",
+		command: "npx tsc",
+		args: ["--noEmit"]
 	}
 ]
 
