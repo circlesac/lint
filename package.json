@@ -4,7 +4,7 @@
   },
   "dependencies": {
     "citty": "^0.2.0",
-    "eslint": "^10.0.0",
+    "eslint": "^9.34.0",
     "read-package-up": "^12.0.0",
     "typescript-eslint": "^8.54.0"
   },
