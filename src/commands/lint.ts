@@ -38,8 +38,9 @@ const tools: ToolConfig[] = [
 	{
 		name: "typecheck",
 		title: "TypeScript",
-		command: "npx tsc",
-		args: ["--noEmit"]
+		command: "npx -p typescript tsc",
+		args: ["--noEmit"],
+		requiredFile: "tsconfig.json"
 	}
 ]
 

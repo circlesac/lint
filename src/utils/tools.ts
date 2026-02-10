@@ -14,6 +14,7 @@ export interface ToolConfig {
 	configFile?: string
 	ignoreArg?: string
 	ignoreFile?: string
+	requiredFile?: string
 }
 
 interface FailureLogData {
@@ -29,6 +30,16 @@ interface FailureLogData {
 }
 
 export async function runTool(tool: ToolConfig): Promise<boolean> {
+	// Skip tool if required file doesn't exist in the project
+	if (tool.requiredFile) {
+		try {
+			await access(resolve(process.cwd(), tool.requiredFile))
+		} catch {
+			console.info(`⏭️  Skipping ${tool.title} (no ${tool.requiredFile} found)`)
+			return true
+		}
+	}
+
 	const packageRoot = await getPackageRoot()
 
 	const args = [...tool.args]
