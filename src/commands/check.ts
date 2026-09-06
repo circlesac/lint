@@ -2,13 +2,15 @@ import { execSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { defineCommand } from "citty";
+import { runWorkersProbe } from "./probe.js";
 
 /**
  * Deterministic structure checks for Circles repositories.
  *
  * Every check states the requirement it enforces. A repository that is a Cloudflare Workers API
- * (wrangler configuration present) gets the full Workers set; other repositories get the generic set.
- * The command prints one line per check and exits 1 when any check fails, so `bun run test` can gate on it.
+ * (wrangler configuration present) gets the full Workers set plus the behavioral probe; other repositories
+ * get the generic set. The command prints one line per check and exits 1 when any check fails, so
+ * `bun run test` and the harness can gate on it.
  */
 
 export interface CheckResult {
@@ -23,6 +25,9 @@ const readText = (root: string, rel: string): string | undefined => {
 	const path = join(root, rel);
 	return existsSync(path) ? readFileSync(path, "utf8") : undefined;
 };
+
+const stripComments = (text: string): string =>
+	text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 
 const readJson = (
 	root: string,
@@ -79,11 +84,8 @@ export function isWorkersProject(root: string): boolean {
 	);
 }
 
-const scriptsOf = (root: string): Record<string, string> => {
-	const pkg = readJson(root, "package.json");
-	const scripts = (pkg?.scripts ?? {}) as Record<string, string>;
-	return scripts;
-};
+const scriptsOf = (root: string): Record<string, string> =>
+	(readJson(root, "package.json")?.scripts ?? {}) as Record<string, string>;
 
 const dependenciesOf = (root: string): Record<string, string> => {
 	const pkg = readJson(root, "package.json");
@@ -92,6 +94,9 @@ const dependenciesOf = (root: string): Record<string, string> => {
 		...((pkg?.devDependencies ?? {}) as Record<string, string>),
 	};
 };
+
+const controllerSource = (root: string, dir: string): string =>
+	stripComments(readText(root, `src/controllers/${dir}/index.ts`) ?? "");
 
 export const genericChecks: Check[] = [
 	(root) =>
@@ -113,8 +118,7 @@ export const genericChecks: Check[] = [
 		);
 	},
 	(root) => {
-		const scripts = scriptsOf(root);
-		const neutralized = Object.entries(scripts).filter(
+		const neutralized = Object.entries(scriptsOf(root)).filter(
 			([, cmd]) => /\|\|\s*true\b/.test(cmd) || /--no-config-lookup/.test(cmd),
 		);
 		return result(
@@ -124,8 +128,7 @@ export const genericChecks: Check[] = [
 		);
 	},
 	(root) => {
-		const deps = dependenciesOf(root);
-		const latest = Object.entries(deps).filter(
+		const latest = Object.entries(dependenciesOf(root)).filter(
 			([, v]) => v === "latest" || v === "*",
 		);
 		return result(
@@ -135,8 +138,9 @@ export const genericChecks: Check[] = [
 		);
 	},
 	(root) => {
-		const deps = dependenciesOf(root);
-		const pinned = Object.entries(deps).filter(([, v]) => /^\d/.test(v));
+		const pinned = Object.entries(dependenciesOf(root)).filter(([, v]) =>
+			/^\d/.test(v),
+		);
 		return result(
 			"No exact version pins (use the package manager's default range)",
 			pinned.length === 0,
@@ -144,9 +148,8 @@ export const genericChecks: Check[] = [
 		);
 	},
 	(root) => {
-		const scripts = scriptsOf(root);
 		const missing = ["lint", "format", "check", "test"].filter(
-			(s) => !scripts[s],
+			(s) => !scriptsOf(root)[s],
 		);
 		return result(
 			"Scripts lint, format, check, test exist",
@@ -156,9 +159,7 @@ export const genericChecks: Check[] = [
 	},
 	(root) => {
 		const test = scriptsOf(root).test ?? "";
-		const ok =
-			/\bbun run lint\b|\blint\b/.test(test) &&
-			/\bbun run check\b|\bcheck\b/.test(test);
+		const ok = /\blint\b/.test(test) && /\bcheck\b/.test(test);
 		return result(
 			"test script runs lint and check before the runner",
 			ok,
@@ -166,8 +167,7 @@ export const genericChecks: Check[] = [
 		);
 	},
 	(root) => {
-		const tracked = trackedFiles(root);
-		const stray = tracked.filter((f) => f === "index.ts");
+		const stray = trackedFiles(root).filter((f) => f === "index.ts");
 		return result(
 			"No scaffold leftover at the repository root",
 			stray.length === 0,
@@ -183,8 +183,9 @@ export const genericChecks: Check[] = [
 				"No repository Biome config (the shared configuration applies)",
 				true,
 			);
-		const text = readText(root, biome) ?? "";
-		const weakened = /noExplicitAny"?\s*:\s*"?(off|warn)/.test(text);
+		const weakened = /noExplicitAny"?\s*:\s*"?(off|warn)/.test(
+			readText(root, biome) ?? "",
+		);
 		return result(
 			"Repository Biome config does not weaken noExplicitAny",
 			!weakened,
@@ -194,14 +195,21 @@ export const genericChecks: Check[] = [
 ];
 
 export const workersChecks: Check[] = [
-	(root) =>
-		result(
-			"wrangler.jsonc is the Wrangler config",
-			existsSync(join(root, "wrangler.jsonc")),
-			existsSync(join(root, "wrangler.toml"))
-				? "found wrangler.toml"
-				: undefined,
-		),
+	(root) => {
+		const jsonc = existsSync(join(root, "wrangler.jsonc"));
+		const others = ["wrangler.toml", "wrangler.json"].filter((f) =>
+			existsSync(join(root, f)),
+		);
+		return result(
+			"wrangler.jsonc is the only Wrangler config",
+			jsonc && others.length === 0,
+			others.length
+				? `found ${others.join(", ")}`
+				: jsonc
+					? undefined
+					: "missing",
+		);
+	},
 	(root) =>
 		result(
 			"types script is `wrangler types`",
@@ -219,10 +227,10 @@ export const workersChecks: Check[] = [
 		);
 	},
 	(root) => {
-		const ignore = readText(root, ".gitignore") ?? "";
-		const tracked = trackedFiles(root);
-		const ignored = /worker-configuration\.d\.ts/.test(ignore);
-		const committed = tracked.includes("worker-configuration.d.ts");
+		const ignored = /worker-configuration\.d\.ts/.test(
+			readText(root, ".gitignore") ?? "",
+		);
+		const committed = trackedFiles(root).includes("worker-configuration.d.ts");
 		return result(
 			"worker-configuration.d.ts is gitignored and not committed",
 			ignored && !committed,
@@ -260,14 +268,17 @@ export const workersChecks: Check[] = [
 		),
 	(root) => {
 		const dirs = listDirs(join(root, "src/controllers"));
-		const missing = dirs.filter(
-			(d) =>
-				!/static\s+(readonly\s+)?route\s*=/.test(
-					readText(root, `src/controllers/${d}/index.ts`) ?? "",
-				),
-		);
+		const missing = dirs.filter((d) => {
+			const text = controllerSource(root, d);
+			const route = /static\s+(readonly\s+)?route\s*=\s*createRoute\s*\(/.test(
+				text,
+			);
+			const handle =
+				/static\s+(readonly\s+)?handle\s*(:[^=]*)?=\s*(async\s*)?\(/.test(text);
+			return !(route && handle);
+		});
 		return result(
-			"Each controller declares routes as classes with a static route",
+			"Each controller declares routes as classes with static route = createRoute(...) and a static handle function",
 			dirs.length > 0 && missing.length === 0,
 			missing.join(", ") || undefined,
 		);
@@ -277,7 +288,7 @@ export const workersChecks: Check[] = [
 		const missing = dirs.filter(
 			(d) =>
 				!/method:\s*["'](get|post|put|patch|delete)["']/.test(
-					readText(root, `src/controllers/${d}/index.ts`) ?? "",
+					controllerSource(root, d),
 				),
 		);
 		return result(
@@ -290,7 +301,7 @@ export const workersChecks: Check[] = [
 		const dirs = listDirs(join(root, "src/controllers"));
 		const offenders = dirs.filter((d) =>
 			/c\.req\.(json|param|query)\(\)|\)\s+as\s+[A-Z]/.test(
-				readText(root, `src/controllers/${d}/index.ts`) ?? "",
+				controllerSource(root, d),
 			),
 		);
 		return result(
@@ -302,7 +313,7 @@ export const workersChecks: Check[] = [
 	(root) => {
 		const dirs = listDirs(join(root, "src/controllers"));
 		const offenders = dirs.filter((d) =>
-			/z\.object\(/.test(readText(root, `src/controllers/${d}/index.ts`) ?? ""),
+			/z\.object\(/.test(controllerSource(root, d)),
 		);
 		return result(
 			"Schemas live in schemas.ts, not in the controller",
@@ -311,24 +322,28 @@ export const workersChecks: Check[] = [
 		);
 	},
 	(root) => {
-		const entry = readText(root, "src/index.ts") ?? "";
+		const entry = stripComments(readText(root, "src/index.ts") ?? "");
 		return result(
 			"src/index.ts serves /openapi.json and /docs",
 			/\/openapi\.json/.test(entry) && /["']\/docs["']/.test(entry),
 		);
 	},
+	(root) =>
+		result(
+			"tests/*.test.ts exist",
+			listFiles(join(root, "tests"), (f) => /\.test\.ts$/.test(f)).length > 0,
+		),
 	(root) => {
-		const tests = listFiles(join(root, "tests"), (f) => /\.test\.ts$/.test(f));
-		return result("tests/*.test.ts exist", tests.length > 0);
-	},
-	(root) => {
-		const helper = readText(root, "tests/helpers/request.ts") ?? "";
+		const helper = stripComments(
+			readText(root, "tests/helpers/request.ts") ?? "",
+		);
 		const ok =
 			/hc</.test(helper) &&
-			/createExecutionContext/.test(helper) &&
+			/from\s+["']cloudflare:test["']/.test(helper) &&
+			/createExecutionContext\(\)/.test(helper) &&
 			/app\.fetch\(/.test(helper);
 		return result(
-			"tests/helpers/request.ts builds the app-typed client over app.fetch with an execution context",
+			"tests/helpers/request.ts builds the app-typed client over app.fetch with an execution context from cloudflare:test",
 			ok,
 			helper ? undefined : "missing",
 		);
@@ -336,7 +351,9 @@ export const workersChecks: Check[] = [
 	(root) => {
 		const tests = listFiles(join(root, "tests"), (f) => /\.test\.ts$/.test(f));
 		const bypass = tests.filter((f) =>
-			/app\.request\(|app\.fetch\(/.test(readText(root, `tests/${f}`) ?? ""),
+			/app\.request\(|app\.fetch\(/.test(
+				stripComments(readText(root, `tests/${f}`) ?? ""),
+			),
 		);
 		return result(
 			"Tests call the API through the typed client, not app.request",
@@ -348,12 +365,13 @@ export const workersChecks: Check[] = [
 		const config = listFiles(root, (f) =>
 			/^vitest\.config\.(ts|mts|js|mjs)$/.test(f),
 		)[0];
-		const text = config ? (readText(root, config) ?? "") : "";
+		const text = stripComments(config ? (readText(root, config) ?? "") : "");
 		const ok =
 			/wrangler/.test(text) &&
-			/(cloudflarePool|defineWorkersConfig)/.test(text);
+			/(cloudflarePool|defineWorkersConfig)\s*\(/.test(text) &&
+			!/environment\s*:\s*["']node["']/.test(text);
 		return result(
-			"Test runner config points the Workers pool at wrangler.jsonc",
+			"Test runner config points the Workers pool at wrangler.jsonc (no node environment)",
 			ok,
 			config ? undefined : "no vitest config",
 		);
@@ -367,18 +385,23 @@ export const workersChecks: Check[] = [
 	},
 ];
 
-export function runChecks(root: string): CheckResult[] {
-	const checks = isWorkersProject(root)
-		? [...genericChecks, ...workersChecks]
-		: genericChecks;
-	return checks.map((check) => check(root));
+export function runChecks(
+	root: string,
+	options: { probe?: boolean } = {},
+): CheckResult[] {
+	const workers = isWorkersProject(root);
+	const checks = workers ? [...genericChecks, ...workersChecks] : genericChecks;
+	const results = checks.map((check) => check(root));
+	if (workers && options.probe !== false)
+		results.push(...runWorkersProbe(root));
+	return results;
 }
 
 export const checkCommand = defineCommand({
 	meta: {
 		name: "check",
 		description:
-			"Deterministic structure checks for Circles repositories (Workers API set when a Wrangler config is present)",
+			"Deterministic structure checks and a behavioral probe for Circles repositories (Workers API set when a Wrangler config is present)",
 	},
 	args: {
 		cwd: {
@@ -386,10 +409,16 @@ export const checkCommand = defineCommand({
 			description: "Repository root (default: current directory)",
 		},
 		json: { type: "boolean", description: "Print results as JSON" },
+		probe: {
+			type: "boolean",
+			default: true,
+			description:
+				"Run the behavioral probe for Workers APIs (use --no-probe for text checks only)",
+		},
 	},
 	run({ args }) {
 		const root = resolve(args.cwd ?? process.cwd());
-		const results = runChecks(root);
+		const results = runChecks(root, { probe: args.probe !== false });
 		const failed = results.filter((r) => !r.ok);
 		if (args.json) {
 			console.info(
@@ -405,7 +434,7 @@ export const checkCommand = defineCommand({
 			);
 			for (const r of results)
 				console.info(
-					`${r.ok ? "✅" : "❌"} ${r.name}${r.detail ? ` — ${r.detail}` : ""}`,
+					`${r.ok ? "✅" : "❌"} ${r.name}${r.detail ? ` — ${r.detail.split("\n").length > 1 ? `\n${r.detail}` : r.detail}` : ""}`,
 				);
 			console.info(
 				failed.length === 0
