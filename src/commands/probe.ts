@@ -3,6 +3,7 @@ import {
 	existsSync,
 	mkdirSync,
 	readdirSync,
+	readFileSync,
 	rmSync,
 	statSync,
 	writeFileSync,
@@ -34,6 +35,87 @@ const result = (name: string, ok: boolean, detail?: string): CheckResult =>
 const tail = (text: string, lines = 25): string =>
 	text.split("\n").filter(Boolean).slice(-lines).join("\n");
 
+const readVersion = (root: string, pkg: string): string | undefined => {
+	const path = join(root, "node_modules", pkg, "package.json");
+	if (!existsSync(path)) return undefined;
+	try {
+		return (JSON.parse(readFileSync(path, "utf8")) as { version?: string })
+			.version;
+	} catch {
+		return undefined;
+	}
+};
+
+/** Minimal semver check for the ranges peerDependencies use here (`^x.y.z`, `>=x.y.z`, `x`, `*`, `||` unions). */
+export function satisfiesRange(version: string, range: string): boolean {
+	const parse = (v: string) =>
+		v
+			.replace(/^v/, "")
+			.split(/[-+]/)[0]
+			?.split(".")
+			.map((n) => Number(n) || 0) ?? [];
+	const [maj = 0, min = 0, pat = 0] = parse(version);
+	const cmp = (a: number[], b: number[]) =>
+		a[0] !== b[0]
+			? Math.sign((a[0] ?? 0) - (b[0] ?? 0))
+			: a[1] !== b[1]
+				? Math.sign((a[1] ?? 0) - (b[1] ?? 0))
+				: Math.sign((a[2] ?? 0) - (b[2] ?? 0));
+	return range.split("||").some((part) => {
+		const clause = part.trim();
+		if (clause === "*" || clause === "") return true;
+		const m = clause.match(
+			/^(\^|~|>=|>|<=|<)?\s*v?(\d+)(?:\.(\d+))?(?:\.(\d+))?/,
+		);
+		if (!m) return false;
+		const op = m[1] ?? "";
+		const base = [Number(m[2]), Number(m[3] ?? 0), Number(m[4] ?? 0)];
+		const current = [maj, min, pat];
+		if (op === ">=") return cmp(current, base) >= 0;
+		if (op === ">") return cmp(current, base) > 0;
+		if (op === "<=") return cmp(current, base) <= 0;
+		if (op === "<") return cmp(current, base) < 0;
+		if (op === "~")
+			return maj === base[0] && min === base[1] && cmp(current, base) >= 0;
+		if (op === "^")
+			return base[0] === 0
+				? maj === 0 && min === base[1] && cmp(current, base) >= 0
+				: maj === base[0] && cmp(current, base) >= 0;
+		return m[3] === undefined
+			? maj === base[0]
+			: m[4] === undefined
+				? maj === base[0] && min === base[1]
+				: cmp(current, base) === 0;
+	});
+}
+
+function peerRangeMismatch(root: string): string | undefined {
+	const poolPath = join(
+		root,
+		"node_modules",
+		"@cloudflare/vitest-pool-workers",
+		"package.json",
+	);
+	if (!existsSync(poolPath)) return undefined;
+	let peers: Record<string, string> = {};
+	try {
+		peers =
+			(
+				JSON.parse(readFileSync(poolPath, "utf8")) as {
+					peerDependencies?: Record<string, string>;
+				}
+			).peerDependencies ?? {};
+	} catch {
+		return undefined;
+	}
+	const range = peers.vitest;
+	const installed = readVersion(root, "vitest");
+	if (!range || !installed) return undefined;
+	return satisfiesRange(installed, range)
+		? undefined
+		: `vitest ${installed} is installed but @cloudflare/vitest-pool-workers requires ${range}; install the runner at that major (for example bun add -d vitest@4) until the pool supports the newer one`;
+}
+
 export function runWorkersProbe(root: string): CheckResult[] {
 	const results: CheckResult[] = [];
 	const has = (pkg: string) => existsSync(join(root, "node_modules", pkg));
@@ -54,6 +136,17 @@ export function runWorkersProbe(root: string): CheckResult[] {
 					...missing,
 					...(coverageProvider ? [] : ["@vitest/coverage-istanbul"]),
 				].join(", "),
+			),
+		);
+		return results;
+	}
+	const peer = peerRangeMismatch(root);
+	if (peer) {
+		results.push(
+			result(
+				"Probe: installed test runner satisfies the Workers pool's peer range",
+				false,
+				peer,
 			),
 		);
 		return results;
