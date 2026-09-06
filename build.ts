@@ -1,11 +1,11 @@
-import { build } from "bun"
-import packageJson from "./package.json" with { type: "json" }
+import { build } from "bun";
+import packageJson from "./package.json" with { type: "json" };
 
-console.info("Building...")
+console.info("Building...");
 
 // Get external dependencies from package.json
-const external = Object.keys(packageJson.dependencies || {})
-console.info(`External dependencies: ${external.join(", ")}`)
+const external = Object.keys(packageJson.dependencies || {});
+console.info(`External dependencies: ${external.join(", ")}`);
 
 const result = await build({
 	entrypoints: ["src/main.ts"],
@@ -14,11 +14,11 @@ const result = await build({
 	format: "esm",
 	minify: true,
 	sourcemap: "external",
-	external
-})
+	external,
+});
 
 if (result.success) {
-	console.info("Build successful!")
+	console.info("Build successful!");
 } else {
-	console.error("Build failed!")
+	console.error("Build failed!");
 }
