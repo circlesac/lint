@@ -58,7 +58,7 @@ const scaffoldWorkers = (root: string) => {
 	write(
 		root,
 		"tests/helpers/request.ts",
-		"export const client = hc<AppType>('http://x', { fetch: async (i, init) => { const ctx = createExecutionContext(); const r = await app.fetch(new Request(i, init), env, ctx); return r } })\n",
+		"import { createExecutionContext, env, waitOnExecutionContext } from 'cloudflare:test'\nexport const client = hc<AppType>('http://x', { fetch: async (i, init) => { const ctx = createExecutionContext(); const r = await app.fetch(new Request(i, init), env, ctx); await waitOnExecutionContext(ctx); return r } })\n",
 	);
 	write(
 		root,
@@ -93,7 +93,7 @@ describe("check", () => {
 
 	it("passes a compliant Workers repository", () => {
 		scaffoldWorkers(root);
-		const failed = runChecks(root).filter((r) => !r.ok);
+		const failed = runChecks(root, { probe: false }).filter((r) => !r.ok);
 		expect(failed).toEqual([]);
 	});
 
@@ -129,7 +129,7 @@ describe("check", () => {
 		pkg.devDependencies.typescript = "5.9.3";
 		pkg.devDependencies["@types/bun"] = "latest";
 		write(root, "package.json", JSON.stringify(pkg));
-		const failed = runChecks(root)
+		const failed = runChecks(root, { probe: false })
 			.filter((r) => !r.ok)
 			.map((r) => r.name);
 		expect(failed).toEqual(
@@ -140,13 +140,52 @@ describe("check", () => {
 				"No exact version pins (use the package manager's default range)",
 				"Repository Biome config does not weaken noExplicitAny",
 				"No published Workers type package (wrangler types supersedes it)",
-				"Each controller declares routes as classes with a static route",
+				"Each controller declares routes as classes with static route = createRoute(...) and a static handle function",
 				"Handlers read validated inputs only (no raw c.req.json/param/query, no casts)",
-				"tests/helpers/request.ts builds the app-typed client over app.fetch with an execution context",
+				"tests/helpers/request.ts builds the app-typed client over app.fetch with an execution context from cloudflare:test",
 				"Tests call the API through the typed client, not app.request",
-				"Test runner config points the Workers pool at wrangler.jsonc",
+				"Test runner config points the Workers pool at wrangler.jsonc (no node environment)",
 			]),
 		);
+	});
+
+	it("rejects text-level gaming of the structure checks", () => {
+		scaffoldWorkers(root);
+		write(
+			root,
+			"src/controllers/users/index.ts",
+			"// method: 'get'\nexport class ListUsers {\n  static route = '/users'\n  static handle = 'list'\n}\n",
+		);
+		write(
+			root,
+			"tests/helpers/request.ts",
+			"export const createExecutionContext = () => ({})\nconst fetch = (i, init) => app.fetch(new Request(i, init), {}, createExecutionContext())\nexport const client = hc<AppType>('http://x', { fetch })\n",
+		);
+		write(
+			root,
+			"vitest.config.ts",
+			"// cloudflarePool / defineWorkersConfig wrangler\nexport default defineConfig({ test: { environment: 'node' } })\n",
+		);
+		write(root, "wrangler.toml", "name = 'x'\n");
+		const failed = runChecks(root, { probe: false })
+			.filter((r) => !r.ok)
+			.map((r) => r.name);
+		expect(failed).toEqual(
+			expect.arrayContaining([
+				"wrangler.jsonc is the only Wrangler config",
+				"Each controller declares routes as classes with static route = createRoute(...) and a static handle function",
+				"Route method and path are declared in the controller",
+				"tests/helpers/request.ts builds the app-typed client over app.fetch with an execution context from cloudflare:test",
+				"Test runner config points the Workers pool at wrangler.jsonc (no node environment)",
+			]),
+		);
+	});
+
+	it("reports missing probe dependencies instead of running the probe", () => {
+		scaffoldWorkers(root);
+		const probe = runChecks(root).filter((r) => r.name.startsWith("Probe:"));
+		expect(probe).toHaveLength(1);
+		expect(probe[0]?.ok).toBe(false);
 	});
 
 	it("runs only the generic set outside a Workers project", () => {
@@ -167,6 +206,6 @@ describe("check", () => {
 		write(root, "bun.lock", "");
 		execSync("git init -q && git add -A", { cwd: root, stdio: "pipe" });
 		expect(isWorkersProject(root)).toBe(false);
-		expect(runChecks(root).filter((r) => !r.ok)).toEqual([]);
+		expect(runChecks(root, { probe: false }).filter((r) => !r.ok)).toEqual([]);
 	});
 });
