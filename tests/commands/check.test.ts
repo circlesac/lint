@@ -209,3 +209,15 @@ describe("check", () => {
 		expect(runChecks(root, { probe: false }).filter((r) => !r.ok)).toEqual([]);
 	});
 });
+
+describe("satisfiesRange", () => {
+	it("matches caret, greater-or-equal, and union ranges", async () => {
+		const { satisfiesRange } = await import("../../src/commands/probe.js");
+		expect(satisfiesRange("4.1.11", "^4.1.0")).toBe(true);
+		expect(satisfiesRange("5.0.0", "^4.1.0")).toBe(false);
+		expect(satisfiesRange("5.0.0", ">=4.1.0")).toBe(true);
+		expect(satisfiesRange("0.22.0", "^0.22.0")).toBe(true);
+		expect(satisfiesRange("0.23.0", "^0.22.0")).toBe(false);
+		expect(satisfiesRange("5.0.0", "^4.1 || ^5")).toBe(true);
+	});
+});

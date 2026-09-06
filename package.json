@@ -1,55 +1,55 @@
 {
-  "bin": {
-    "lint": "dist/main.js"
-  },
-  "dependencies": {
-    "@biomejs/biome": "^2.5.12",
-    "citty": "^0.2.2",
-    "read-package-up": "^12.0.0"
-  },
-  "description": "🔧 Zero-config lint, format, typecheck, and structure checks for Circles repositories, powered by Biome",
-  "devDependencies": {
-    "@types/bun": "^1.4.1",
-    "@types/node": "^26.4.1",
-    "@vitest/coverage-istanbul": "^5.0.0",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.0"
-  },
-  "exports": {
-    "./biome": "./biome.jsonc"
-  },
-  "files": [
-    "dist",
-    "biome.jsonc"
-  ],
-  "keywords": [
-    "cli",
-    "lint",
-    "format",
-    "biome",
-    "zeroconf",
-    "circles"
-  ],
-  "license": "MIT",
-  "main": "dist/main.js",
-  "name": "@circlesac/lint",
-  "private": false,
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/circlesac/lint.git"
-  },
-  "scripts": {
-    "build": "bun lint && npx -p @typescript/native-preview tsgo --noEmit && bun run build.ts",
-    "check": "bun dev check",
-    "dev": "bun run src/main.ts",
-    "lint": "bun dev --all",
-    "prepublishOnly": "bun run build",
-    "start": "bun run build && bun run dist/main.js",
-    "test": "vitest run --coverage"
-  },
-  "type": "module",
-  "version": "26.9.1"
+	"bin": {
+		"lint": "dist/main.js"
+	},
+	"dependencies": {
+		"@biomejs/biome": "^2.5.12",
+		"citty": "^0.2.2",
+		"read-package-up": "^12.0.0"
+	},
+	"description": "🔧 Zero-config lint, format, typecheck, and structure checks for Circles repositories, powered by Biome",
+	"devDependencies": {
+		"@types/bun": "^1.4.1",
+		"@types/node": "^26.4.1",
+		"@vitest/coverage-istanbul": "^5.0.0",
+		"typescript": "^7.0.2",
+		"vitest": "^5.0.0"
+	},
+	"exports": {
+		"./biome": "./biome.jsonc"
+	},
+	"files": [
+		"dist",
+		"biome.jsonc"
+	],
+	"keywords": [
+		"cli",
+		"lint",
+		"format",
+		"biome",
+		"zeroconf",
+		"circles"
+	],
+	"license": "MIT",
+	"main": "dist/main.js",
+	"name": "@circlesac/lint",
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/circlesac/lint.git"
+	},
+	"scripts": {
+		"build": "bun lint && npx -p @typescript/native-preview tsgo --noEmit && bun run build.ts",
+		"check": "bun dev check",
+		"dev": "bun run src/main.ts",
+		"lint": "bun dev --all",
+		"prepublishOnly": "bun run build",
+		"start": "bun run build && bun run dist/main.js",
+		"test": "vitest run --coverage"
+	},
+	"type": "module",
+	"version": "26.9.1"
 }
