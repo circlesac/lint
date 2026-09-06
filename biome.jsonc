@@ -1,140 +1,36 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.0.5/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
+	// Shared Circles configuration. Consumers keep no Biome config of their own;
+	// `@circlesac/lint` passes this file to Biome. Everything not listed is the Biome default.
 	"files": {
 		"includes": [
 			"**",
-			"!**/dist",
-			"!**/coverage",
-			"!**/build",
 			"!**/node_modules",
-			"!**/.vercel",
-			"!**/.mastra",
-			"!**/.sst",
-			"!**/.open-next",
-			"!**/.next",
+			"!**/dist",
+			"!**/build",
+			"!**/coverage",
 			"!**/.wrangler",
+			"!**/.next",
+			"!**/.open-next",
+			"!**/.vercel",
+			"!**/.sst",
 			"!**/.venv",
-			"!**/htmlcov",
-			"!**/*-lock.json",
 			"!**/*.lock",
-			"!**/sst-env.d.ts",
+			"!**/*-lock.json",
 			"!**/worker-configuration.d.ts",
-			"!**/test/env.d.ts"
+			"!**/sst-env.d.ts"
 		]
 	},
-	"formatter": {
-		"indentWidth": 4,
-		"lineWidth": 180,
-		"includes": [
-			"**",
-			"!**/dist",
-			"!**/coverage",
-			"!**/build",
-			"!**/node_modules",
-			"!**/.vercel",
-			"!**/.mastra",
-			"!**/.sst",
-			"!**/.open-next",
-			"!**/.next",
-			"!**/.wrangler",
-			"!**/.venv",
-			"!**/htmlcov",
-			"!**/*-lock.json",
-			"!**/*.lock",
-			"!**/sst-env.d.ts",
-			"!**/worker-configuration.d.ts",
-			"!**/test/env.d.ts"
-		]
-	},
+	"formatter": { "enabled": true },
 	"linter": {
-		"includes": [
-			"**",
-			"!**/dist",
-			"!**/coverage",
-			"!**/build",
-			"!**/node_modules",
-			"!**/.vercel",
-			"!**/.mastra",
-			"!**/.sst",
-			"!**/.open-next",
-			"!**/.next",
-			"!**/.wrangler",
-			"!**/.venv",
-			"!**/htmlcov",
-			"!**/*-lock.json",
-			"!**/*.lock",
-			"!**/sst-env.d.ts",
-			"!**/worker-configuration.d.ts",
-			"!**/test/env.d.ts"
-		],
+		"enabled": true,
 		"rules": {
-			"a11y": {
-				"noSvgWithoutTitle": "off",
-				"noStaticElementInteractions": "off",
-				"noLabelWithoutControl": "off",
-				"useKeyWithClickEvents": "off"
-			},
-			"correctness": {
-				"noSwitchDeclarations": "off"
-			},
-			"complexity": {
-				"noForEach": "off",
-				"noStaticOnlyClass": "off",
-				"useOptionalChain": "off",
-				"useLiteralKeys": "off"
-			},
-			"style": {
-				"useImportType": "off",
-				"useNodejsImportProtocol": "off",
-				"noUnusedTemplateLiteral": "off",
-				"noNonNullAssertion": "off",
-				"useNumberNamespace": "off",
-				"useTemplate": "off",
-				"useEnumInitializers": "off",
-				"noInferrableTypes": "off",
-				"noUselessElse": "off",
-				"useSingleVarDeclarator": "off",
-				"noParameterAssign": "off"
-			},
-			"suspicious": {
-				"noDoubleEquals": "off",
-				"noExplicitAny": "off",
-				"noImplicitAnyLet": "off",
-				"noAssignInExpressions": "off",
-				"noGlobalIsNan": "off",
-				"noArrayIndexKey": "off",
-				"noUnknownAtRules": "off"
-			},
-			"performance": {
-				"noDelete": "off",
-				"noAccumulatingSpread": "off"
-			}
+			"preset": "recommended",
+			// Explicit any is an error, not the default warning (code quality baseline).
+			"suspicious": { "noExplicitAny": "error" },
+			// A class with only static members is the Circles route unit (static route + static handle).
+			"complexity": { "noStaticOnlyClass": "off" }
 		}
 	},
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
-	"javascript": {
-		"globals": ["$", "_"],
-		"parser": {
-			"unsafeParameterDecoratorsEnabled": true
-		},
-		"formatter": {
-			"enabled": false,
-			"trailingCommas": "none",
-			"semicolons": "asNeeded"
-		}
-	},
-	"overrides": [
-		{
-			"includes": ["**/*.json", "**/*.js", "**/*.mjs"],
-			"javascript": {
-				"formatter": {
-					"semicolons": "always"
-				}
-			},
-			"formatter": {
-				"indentStyle": "space",
-				"indentWidth": 2
-			}
-		}
-	]
+	"assist": { "actions": { "source": { "organizeImports": "on" } } }
 }

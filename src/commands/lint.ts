@@ -1,101 +1,65 @@
-import { defineCommand, showUsage } from "citty"
-import packageJson from "../../package.json" with { type: "json" }
-import { runTool, type ToolConfig } from "../utils/tools.js"
+import type { ArgsDef } from "citty";
+import { runTool, type ToolConfig } from "../utils/tools.js";
 
 const tools: ToolConfig[] = [
 	{
-		name: "oxlint",
-		title: "Oxlint",
-		command: "npx oxlint",
-		args: ["--fix"]
-	},
-	{
-		name: "eslint",
-		title: "ESLint",
-		command: "npx eslint",
-		args: ["--fix"],
-		configArg: "--config",
-		configFile: "eslint.config.mjs"
-	},
-	{
-		name: "prettier",
-		title: "Prettier",
-		command: "npx prettier@latest",
-		args: ["'**/*.{ts,tsx,js,jsx,json,jsonc,md,cjs,mjs,mts,yml,yaml}'", "'!**/sst-env.d.ts'", "--write"],
-		configArg: "--config",
-		configFile: "prettier.config.mjs",
-		ignoreArg: "--ignore-path",
-		ignoreFile: ".prettierignore"
-	},
-	{
 		name: "biome",
 		title: "Biome",
-		command: "npx @biomejs/biome",
-		args: ["check", "--write"],
+		command: "biome",
+		args: ["check"],
+		fixArgs: ["--write"],
 		configArg: "--config-path",
-		configFile: "biome.jsonc"
+		configFile: "biome.jsonc",
 	},
 	{
 		name: "typecheck",
 		title: "TypeScript",
 		command: "npx tsc",
 		args: ["--noEmit"],
-		requiredFile: "node_modules/typescript"
-	}
-]
-
-export const lintCommand = defineCommand({
-	meta: {
-		name: packageJson.name,
-		version: packageJson.version,
-		description: packageJson.description
+		requiredFile: "node_modules/typescript",
 	},
-	args: {
-		all: {
-			type: "boolean",
-			description: "Run all tools"
-		},
-		...Object.fromEntries(tools.map((tool) => [tool.name, { type: "boolean" as const, description: `Run ${tool.title}` }]))
+];
+
+export const lintArgs = {
+	all: {
+		type: "boolean",
+		description: "Run every tool (Biome check, TypeScript)",
 	},
-	async run({ args }) {
-		console.info("🔧 Running lint tools...")
+	fix: {
+		type: "boolean",
+		default: true,
+		description:
+			"Apply safe fixes and formatting (use --no-fix for a read-only gate)",
+	},
+	...Object.fromEntries(
+		tools.map((tool) => [
+			tool.name,
+			{ type: "boolean" as const, description: `Run ${tool.title}` },
+		]),
+	),
+} satisfies ArgsDef;
 
-		const options = args as Record<string, boolean>
-
-		// Validate options and determine which tools to run
-		if (options.all) {
-			return await runTools(tools)
-		}
-
-		const selectedTools = tools.filter((tool) => options[tool.name])
-		if (selectedTools.length > 0) {
-			return await runTools(selectedTools)
-		}
-
-		// No tools selected, show help and exit
-		await showUsage(lintCommand)
-		process.exit(0)
+/** Runs the selected tools. Returns false when nothing was selected so the caller can show usage. */
+export async function runLint(
+	options: Record<string, boolean | undefined>,
+): Promise<boolean> {
+	const fix = options.fix !== false;
+	const selected = options.all
+		? tools
+		: tools.filter((tool) => options[tool.name]);
+	if (selected.length === 0) return false;
+	console.info(`🔧 Running lint tools${fix ? "" : " (no fixes)"}...`);
+	const results: { tool: string; success: boolean }[] = [];
+	for (const tool of selected) {
+		results.push({ tool: tool.name, success: await runTool(tool, { fix }) });
 	}
-})
-
-async function runTools(enabledTools: ToolConfig[]) {
-	const results: { tool: string; success: boolean }[] = []
-	for (const tool of enabledTools) {
-		results.push({
-			tool: tool.name,
-			success: await runTool(tool)
-		})
+	const failed = results.filter((r) => !r.success).map((r) => r.tool);
+	const succeeded = results.filter((r) => r.success).map((r) => r.tool);
+	if (succeeded.length > 0)
+		console.info(`✓ Completed: ${succeeded.join(", ")}`);
+	if (failed.length > 0) {
+		console.error(`✗ Failed: ${failed.join(", ")}`);
+		process.exitCode = 1;
 	}
-
-	const failedTools = results.filter((r) => !r.success).map((r) => r.tool)
-	const successfulTools = results.filter((r) => r.success).map((r) => r.tool)
-
-	if (successfulTools.length > 0) {
-		console.info(`✓ Completed: ${successfulTools.join(", ")}`)
-	}
-
-	if (failedTools.length > 0) {
-		console.error(`✗ Failed: ${failedTools.join(", ")}`)
-		process.exitCode = 1
-	}
+	return true;
 }

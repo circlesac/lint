@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { runMain } from "citty"
-import { lintCommand } from "./commands/lint.js"
+import { runMain } from "citty";
+import { mainCommand } from "./commands/index.js";
 
-runMain(lintCommand)
+runMain(mainCommand);
